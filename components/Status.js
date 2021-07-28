@@ -14,6 +14,22 @@ export default class Status extends React.Component {
     isConnected: false,
   };
 
+  async componentDidMount() {
+    this.subscription = NetInfo.addEventListener(this.handleChange);
+
+    const { isConnected } = await NetInfo.fetch();
+
+    this.setState({ isConnected });
+  };
+  
+  componentWillUnmount() {
+    this.subscription();
+  };
+  
+  handleChange = ({ isConnected }) => {
+    this.setState({ isConnected });
+  };
+  
   render() {
     const { isConnected } = this.state;
 
