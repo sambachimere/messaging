@@ -14,6 +14,8 @@ import {
   createLocationMessage,
   createTextMessage,
 } from "./utils/MessageUtils";
+import Toolbar from './components/Toolbar';
+import ImageGrid from './components/ImageGrid';
 
 export default class App extends React.Component {
   state = {
@@ -27,7 +29,58 @@ export default class App extends React.Component {
       }),
     ],
     fullscreenImageId: null,
+    isInputFocused: false,
   };
+
+  handlePressToolbarCamera = () => {
+    
+  };
+
+  handlePressToolbarLocation = () => {
+    const { messages } = this.state;
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { coords: { latitude, longitude } } = position;
+
+      this.setState({
+        messages: [
+          createLocationMessage({
+            latitude,
+            longitude,
+          }),
+          ...messages,
+        ],
+      });
+    });
+  };
+
+  handleChangeFocus = (isFocused) => {
+    this.setState({ isInputFocused: isFocused });
+  };
+
+  handleSubmit = (text) => {
+    const { messages } = this.state;
+
+    this.setState({
+      messages: [createTextMessage(text), ...messages],
+    });
+  };
+
+  renderToolbar() {
+    const { isInputFocused } = this.state;
+
+    return (
+      <View style={styles.toolbar}>
+        <Toolbar 
+          isFocused={isInputFocused}
+          onSubmit={this.handleSubmit}
+          onChangeFocus={this.handleChangeFocus}
+          onPressCamera={this.handlePressToolbarCamera}
+          onPressLocation={this.handlePressToolbarLocation}
+        />
+      </View>
+    );
+  }
 
   dismissFullscreenImage = () => {
     this.setState({ fullscreenImageId: null });
@@ -60,10 +113,13 @@ export default class App extends React.Component {
         );
         break;
       case 'image':
-        this.setState({ fullscreenImageId: id });
+        this.setState({ 
+          fullscreenImageId: id, 
+          isInputFocused: false,
+        });
         break;
       default: 
-          break;
+        break;
     }
   };
 
@@ -103,17 +159,19 @@ export default class App extends React.Component {
     );
   };
 
-  renderInputMethodEditor() {
-    return (
-      <View style={styles.inputMethodEditor}></View>
-    );
-  }
+  handlePressImage = (uri) => {
+    const { messages } = this.state;
 
-  renderToolbar() {
-    return (
-      <View style={styles.toolbar}></View>
-    );
-  }
+    this.setState({
+      messages: [createImageMessage(uri), ...messages],
+    });
+  };
+
+  renderInputMethodEditor = () => (
+    <View style={styles.inputMethodEditor}>
+      <ImageGrid onPressImage={this.handlePressImage} />
+    </View>
+  );
 
   render() {
     return(
